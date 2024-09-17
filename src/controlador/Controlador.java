@@ -16,83 +16,74 @@ import vista.VistaVehiculos;
  *
  * @author Usurio
  */
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import javax.swing.JOptionPane;
+import vista.vista;
+
 public class Controlador {
+    private vista view;
+    private ArrayList<String> vehiculos;
 
-    private GestorVehiculos gestor;
-    private VistaVehiculos vista;
-
-    public Controlador(GestorVehiculos gestor, VistaVehiculos vista) {
-        this.gestor = gestor;
-        this.vista = vista;
+    public Controlador(vista view) {
+        this.view = view;
+        this.vehiculos = new ArrayList<>();
+        initController();
     }
 
-    public void iniciar() {
-        while (true) {
-            String opcion = vista.obtenerEntrada("1. Registrar Vehículo\n2. Consultar Costo de Mantenimiento\n3. Realizar Mantenimiento\n4. Salir");
-
-            switch (opcion) {
-                case "1":
-                    registrarVehiculo();
-                    break;
-                case "2":
-                    consultarCostoMantenimiento();
-                    break;
-                case "3":
-                    realizarMantenimiento();
-                    break;
-                case "4":
-                    vista.mostrarMensaje("Saliendo...");
-                    return;
-                default:
-                    vista.mostrarMensaje("Opción no válida.");
-                    break;
+    private void initController() {
+        view.getBtnRegistrar().addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                registrarVehiculo();
             }
-        }
+        });
+
+        view.getBtnMostrar().addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mostrarVehiculos();
+            }
+        });
     }
 
     private void registrarVehiculo() {
-        String tipo = vista.obtenerEntrada("¿Qué tipo de vehículo deseas registrar? (Coche/Camion/Motocicleta): ");
-        String matricula = vista.obtenerEntrada("Matrícula: ");
-        String marca = vista.obtenerEntrada("Marca: ");
-        String modelo = vista.obtenerEntrada("Modelo: ");
-        int anio = vista.obtenerEntradaEntero("Año de fabricación: ");
+        String matricula = view.getTxtMatricula().getText();
+        String marca = view.getTxtMarca().getText();
+        String modelo = view.getTxtModelo().getText();
+        String año = view.getTxtAñoFabricacion().getText();
+        String turbo = view.getTxtTurbo().getText();
+        String cilindrada = view.getTxtCilindrada().getText();
+        String tipoVehiculo = view.getComboTipoVehiculo().getSelectedItem().toString();
 
-        Vehiculo vehiculo = null;
-
-        if (tipo.equalsIgnoreCase("Coche")) {
-            vehiculo = new Coche(matricula, marca, modelo, anio);
-        } else if (tipo.equalsIgnoreCase("Camion")) {
-            double peso = vista.obtenerEntradaDouble("Peso del camión: ");
-            vehiculo = new Camion(matricula, marca, modelo, anio, peso);
-        } else if (tipo.equalsIgnoreCase("Motocicleta")) {
-            int cilindrada = vista.obtenerEntradaEntero("Cilindrada de la motocicleta: ");
-            vehiculo = new Motocicleta(matricula, marca, modelo, anio, cilindrada);
-        } else {
-            vista.mostrarMensaje("Tipo de vehículo no reconocido.");
+        if (matricula.isEmpty() || marca.isEmpty() || modelo.isEmpty() || año.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Por favor, complete todos los campos.");
+            return;
         }
 
-        if (vehiculo != null) {
-            gestor.registrarVehiculo(vehiculo);
-            vista.mostrarMensaje("Vehículo registrado correctamente.");
-        }
+        String vehiculo = String.format("Matricula: %s, Marca: %s, Modelo: %s, Año: %s, Turbo: %s, Cilindrada: %s, Tipo: %s",
+                                        matricula, marca, modelo, año, turbo, cilindrada, tipoVehiculo);
+        vehiculos.add(vehiculo);
+        JOptionPane.showMessageDialog(null, "Vehículo registrado correctamente.");
+        limpiarCampos();
     }
 
-    private void consultarCostoMantenimiento() {
-        String matricula = vista.obtenerEntrada("Introduce la matrícula del vehículo: ");
-        Vehiculo vehiculo = gestor.buscarVehiculoPorMatricula(matricula);
-        vista.mostrarInformacionVehiculo(vehiculo);
+    private void mostrarVehiculos() {
+        StringBuilder sb = new StringBuilder();
+        for (String vehiculo : vehiculos) {
+            sb.append(vehiculo).append("\n");
+        }
+        view.getAreaMostrar().setText(sb.toString());
     }
 
-    private void realizarMantenimiento() {
-        String matricula = vista.obtenerEntrada("Introduce la matrícula del vehículo: ");
-        Vehiculo vehiculo = gestor.buscarVehiculoPorMatricula(matricula);
-
-        if (vehiculo != null && vehiculo instanceof Mantenimiento) {
-            ((Mantenimiento) vehiculo).realizarRevision();
-            ((Mantenimiento) vehiculo).cambiarAceite();
-        } else {
-            vista.mostrarMensaje("Vehículo no encontrado o no tiene mantenimiento disponible.");
-        }
+    private void limpiarCampos() {
+        view.getTxtMatricula().setText("");
+        view.getTxtMarca().setText("");
+        view.getTxtModelo().setText("");
+        view.getTxtAñoFabricacion().setText("");
+        view.getTxtTurbo().setText("");
+        view.getTxtCilindrada().setText("");
+        view.getComboTipoVehiculo().setSelectedIndex(0);
     }
 }
-
